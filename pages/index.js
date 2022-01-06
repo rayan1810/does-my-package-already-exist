@@ -1,8 +1,22 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import bodyParser from "body-parser";
+import util from "util";
 
-export default function Home() {
+const getBody = util.promisify(bodyParser.urlencoded());
+
+const checkIfPackageAvailableInData = (data, name) => {
+  if (data) {
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].package.name === name) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+export default function Home(props) {
   return (
     <div className={styles.container}>
       <Head>
@@ -13,57 +27,41 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
+          Welcome to Does my package already exists?
         </h1>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
+        <p className={styles.description}>Type your package name</p>
+
+        <form method="post">
+          <input name="name" />
+          <button type="submit">submit</button>
+        </form>
+        <p>
+          {checkIfPackageAvailableInData(props.data?.objects, props.name)
+            ? "Not Found You are good to go"
+            : "Sorry bruh"}
         </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
       </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
     </div>
-  )
+  );
+}
+
+async function getPackage(name) {
+  const response = await fetch(
+    "https://registry.npmjs.com/-/v1/search?text=" + name + "&size=20"
+  );
+  return response.json();
+}
+export async function getServerSideProps({ req, res }) {
+  if (req.method === "POST") {
+    await getBody(req, res);
+  }
+  const name = req.body?.name ?? "";
+  const data = await getPackage(name);
+  return {
+    props: {
+      name: name,
+      data: data.objects.length !== 0 ? data : "404",
+    },
+  };
 }
