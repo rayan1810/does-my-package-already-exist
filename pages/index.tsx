@@ -22,7 +22,7 @@ const checkIfPackageAvailableInData = (data: any, name: any) => {
   return true;
 };
 
-export default function Home(props) {
+export default function Home(props: any) {
   const [packageName, setPackageName] = useState("");
   const [searchResults, setSearchResults] = useState(null);
   return (
@@ -56,11 +56,13 @@ export default function Home(props) {
           </HStack>
         </form>
         <Text>
+          {/* @ts-ignore */}
           {checkIfPackageAvailableInData(searchResults?.objects, packageName)
             ? "Not Found You are good to go"
             : "Sorry bruh"}
         </Text>
         <FlatList
+          // @ts-ignore
           data={searchResults?.objects}
           renderItem={({ item }: any) => {
             return <Box h="60">{item?.package?.name}</Box>;
@@ -72,7 +74,7 @@ export default function Home(props) {
   );
 }
 
-async function getPackage(name) {
+async function getPackage(name: any) {
   const response = await fetch(
     "https://registry.npmjs.com/-/v1/search?text=" + name + "&size=20"
   );
