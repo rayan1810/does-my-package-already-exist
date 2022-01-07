@@ -3,7 +3,7 @@ import { NativeBaseProvider } from "native-base";
 
 function MyApp({ Component, pageProps }) {
   return (
-    <NativeBaseProvider>
+    <NativeBaseProvider isSSR>
       <Component {...pageProps} />
     </NativeBaseProvider>
   );
