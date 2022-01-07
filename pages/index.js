@@ -2,7 +2,7 @@ import Head from "next/head";
 import styles from "../styles/Home.module.css";
 import bodyParser from "body-parser";
 import util from "util";
-
+import {Heading} from 'native-base';
 const getBody = util.promisify(bodyParser.urlencoded());
 
 const checkIfPackageAvailableInData = (data, name) => {
@@ -26,9 +26,9 @@ export default function Home(props) {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
+        <Heading size="2xl">
           Welcome to Does my package already exists?
-        </h1>
+        </Heading>
 
         <p className={styles.description}>Type your package name</p>
 
