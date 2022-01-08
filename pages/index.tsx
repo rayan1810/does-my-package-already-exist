@@ -8,23 +8,37 @@ import {
   HStack,
   Input,
   Text,
+  ChevronRightIcon,
+  Spinner,
+  Collapse,
+  ScrollView,
+  Link,
 } from "native-base";
 import { useState } from "react";
 
 const checkIfPackageAvailableInData = (data: any, name: any) => {
   if (data) {
     for (let i = 0; i < data.length; i++) {
-      if (data[i].package.name === name) {
+      if (data[i]?.package?.name === name) {
         return false;
       }
     }
   }
   return true;
 };
+const ResultItem = ({ item }: any) => {
+  return (
+    <Box p="8" bg="coolGray.200" shadow={3}>
+      <Text>{item?.package?.name}</Text>
+    </Box>
+  );
+};
 
 export default function Home(props: any) {
   const [packageName, setPackageName] = useState("");
-  const [searchResults, setSearchResults] = useState(null);
+  const [searchResults, setSearchResults] = useState();
+  const [showResults, setShowResults] = useState(false);
+  const [searchWasTriggered, setSearchWasTriggered] = useState(false);
   return (
     <>
       <Head>
@@ -33,43 +47,113 @@ export default function Home(props: any) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Center h="100vh">
-        <Heading size="2xl">Does my package already exists?</Heading>
-
-        <Text>Type your package name</Text>
-
-        <form method="post">
-          <HStack space="4">
-            <Input
-              onChangeText={(packageName: any) => {
-                setPackageName(packageName);
-              }}
-            />
+      <Box alignItems="center" h="100vh">
+        <Heading my="32" size="2xl">
+          Does my package already exists?
+        </Heading>
+        <Input
+          onSubmitEditing={async () => {
+            if (packageName) {
+              // @ts-ignore
+              setSearchResults(["searching"]);
+              const data = await getPackage(packageName);
+              setSearchResults(data.objects);
+              setShowResults(false);
+              setSearchWasTriggered(true);
+            }
+          }}
+          color="coolGray.500"
+          bg="coolGray.100"
+          borderStyle={"dashed"}
+          borderBottomWidth="3"
+          variant="underlined"
+          size="2xl"
+          w="50%"
+          placeholder="Type Your Package Name"
+          onChangeText={(packageName: any) => {
+            setPackageName(packageName);
+          }}
+          rightElement={
             <Button
+            bg="red.100"
+              variant="unstyled"
               onPress={async () => {
-                const data = await getPackage(packageName);
-                setSearchResults(data);
+                if (packageName) {
+                  // @ts-ignore
+                  setSearchResults(["searching"]);
+                  const data = await getPackage(packageName);
+                  setSearchResults(data.objects);
+                  setShowResults(false);
+                  setSearchWasTriggered(true);
+                }
               }}
             >
-              submit
+              <ChevronRightIcon color="coolGray.500" />
             </Button>
-          </HStack>
-        </form>
-        <Text>
-          {/* @ts-ignore */}
-          {checkIfPackageAvailableInData(searchResults?.objects, packageName)
-            ? "Not Found You are good to go"
-            : "Sorry bruh"}
-        </Text>
-        <FlatList
-          // @ts-ignore
-          data={searchResults?.objects}
-          renderItem={({ item }: any) => {
-            return <Box h="60">{item?.package?.name}</Box>;
-          }}
-          keyExtractor={(item: any) => item?.package?.name}
+          }
         />
-      </Center>
+
+        {/* @ts-ignore */}
+        {searchResults?.length > 0 ? (
+          <Text px="4" py="2" mt="4" bg="lightBlue.200" w="50%">
+            {/* @ts-ignore */}
+            {searchResults?.length > 0 &&
+              //  @ts-ignore
+              (searchResults[0] === "searching" ? (
+                <HStack space="4" alignItems="center">
+                  <Spinner color="indigo.600" />
+                  <Text fontSize="lg" color="coolGray.600">
+                    Searching...
+                  </Text>
+                </HStack>
+              ) : checkIfPackageAvailableInData(searchResults, packageName) ? (
+                "No package found with that name, you are good to go"
+              ) : (
+                "Sorry but there already exist a package exactly like that,"
+              ))}
+            {/* @ts-ignore */}
+            {searchResults?.length >= 1 &&
+              !showResults &&
+              !(
+                //  @ts-ignore
+                (searchResults?.length > 0 && searchResults[0] === "searching")
+              ) && (
+                <Link onPress={() => setShowResults(true)}>
+                  {checkIfPackageAvailableInData(searchResults, packageName)
+                    ? "but we do recommend checking out these other packages that we found, available on npm having similar name to yours"
+                    : " Show me the results"}
+                </Link>
+              )}
+          </Text>
+        ) : (
+          packageName &&
+          searchWasTriggered && (
+            <Text px="4" py="2" mt="4" bg="lightBlue.200" w="50%">
+              You are good to go buddy
+            </Text>
+          )
+        )}
+        {/* @ts-ignore */}
+        {searchResults?.length >= 1 && (
+          <>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Box flex="1">
+                <Collapse isOpen={showResults}>
+                  <FlatList
+                    // @ts-ignore
+                    data={searchResults}
+                    showsVerticalScrollIndicator={false}
+                    renderItem={({ item }: any) => {
+                      return <ResultItem item={item} />;
+                    }}
+                    keyExtractor={(item: any) => item?.package?.name}
+                  />
+                </Collapse>
+              </Box>
+            </ScrollView>
+          </>
+        )}
+      </Box>
     </>
   );
 }
