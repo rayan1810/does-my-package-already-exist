@@ -13,6 +13,9 @@ import {
   Collapse,
   ScrollView,
   Link,
+  CloseIcon,
+  IconButton,
+  Badge,
 } from "native-base";
 import { useState } from "react";
 
@@ -27,10 +30,63 @@ const checkIfPackageAvailableInData = (data: any, name: any) => {
   return true;
 };
 const ResultItem = ({ item }: any) => {
+  console.log(item, "ii");
+
   return (
-    <Box p="8" bg="coolGray.200" shadow={3}>
-      <Text>{item?.package?.name}</Text>
-    </Box>
+    <Link href={item?.package?.links?.npm} isExternal>
+      <Box
+        px="6"
+        py="2"
+        bg="coolGray.100"
+        shadow={2}
+        w="100%"
+        my="3"
+        rounded="4"
+      >
+        <Box
+          rounded="full"
+          position="absolute"
+          bottom="2"
+          right="4"
+          bg="coolGray.200"
+          my="auto"
+        >
+          <ChevronRightIcon size="sm" />
+        </Box>
+        <HStack justifyContent="space-between">
+          <Text fontSize="lg" fontWeight="bold" color="coolGray.800">
+            {item?.package?.name}
+          </Text>
+          <Badge>{`Version: ${item?.package?.version}`}</Badge>
+        </HStack>
+        <HStack space="2">
+          {item?.package?.keywords?.map((keyword: any) => {
+            return <Badge alignSelf="flex-start">{keyword}</Badge>;
+          })}
+        </HStack>
+        <Text fontSize="xs" color="coolGray.600">
+          {item?.package?.description}
+        </Text>
+        <Text mt="3" fontWeight="bold">
+          {item?.package?.author?.name && (
+            <Text fontWeight="normal" color="coolGray.600">
+              Author:{" "}
+            </Text>
+          )}
+          {item?.package?.author?.name}
+        </Text>
+        {!item?.package?.author?.name && (
+          <Text mt="3" fontWeight="bold">
+            {item?.package?.publisher?.username && (
+              <Text fontWeight="normal" color="coolGray.600">
+                Publisher:{" "}
+              </Text>
+            )}
+            {item?.package?.publisher?.username}
+          </Text>
+        )}
+      </Box>
+    </Link>
   );
 };
 
@@ -48,7 +104,7 @@ export default function Home(props: any) {
       </Head>
 
       <Box alignItems="center" h="100vh">
-        <Heading my="32" size="2xl">
+        <Heading my={showResults ? "6" : "32"} size="2xl">
           Does my package already exists?
         </Heading>
         <Input
@@ -75,7 +131,6 @@ export default function Home(props: any) {
           }}
           rightElement={
             <Button
-            bg="red.100"
               variant="unstyled"
               onPress={async () => {
                 if (packageName) {
@@ -135,7 +190,33 @@ export default function Home(props: any) {
         )}
         {/* @ts-ignore */}
         {searchResults?.length >= 1 && (
-          <>
+          <Box
+            my="6"
+            w="50%"
+            flex="1"
+            borderWidth="1"
+            borderColor="coolGray.300"
+            borderStyle="dashed"
+            rounded="4"
+            px="4"
+            py="2"
+          >
+            {showResults && (
+              <IconButton
+                bg="coolGray.900"
+                variant="unstyled"
+                rounded="full"
+                onPress={() => {
+                  setShowResults(false);
+                }}
+                position="absolute"
+                zIndex="1"
+                right="-14"
+                top="-16"
+                _icon={{ size: "3" }}
+                icon={<CloseIcon color="coolGray.50" />}
+              />
+            )}
             <ScrollView showsVerticalScrollIndicator={false}>
               <Box flex="1">
                 <Collapse isOpen={showResults}>
@@ -151,7 +232,7 @@ export default function Home(props: any) {
                 </Collapse>
               </Box>
             </ScrollView>
-          </>
+          </Box>
         )}
       </Box>
     </>
