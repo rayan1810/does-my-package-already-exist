@@ -53,13 +53,13 @@ const ResultItem = ({ item }: any) => {
         >
           <ChevronRightIcon size="sm" />
         </Box>
-        <HStack justifyContent="space-between">
+        <HStack justifyContent="space-between" mb="2">
           <Text fontSize="lg" fontWeight="bold" color="coolGray.800">
             {item?.package?.name}
           </Text>
           <Badge>{`Version: ${item?.package?.version}`}</Badge>
         </HStack>
-        <HStack space="2">
+        <HStack space="2" flexWrap="wrap">
           {item?.package?.keywords?.map((keyword: any) => {
             return <Badge alignSelf="flex-start">{keyword}</Badge>;
           })}
